@@ -32,8 +32,8 @@ const Navbar = () => {
     const navItems = [
         { name: 'Home', slug: '/' },
         { name: 'Clubs', slug: '/clubs' },
-        { name: 'Services', slug: '/News&Blogs' },
-        { name: 'Contact', slug: '/contact' },
+        { name: 'Courses', slug: '/course' },
+        { name: 'Blog', slug: '/Blog' },
     ];
 
     return (

@@ -31,8 +31,6 @@ export class AuthService {
 
     async Login({ email, password }) {
         try {
-            // If a session already exists Appwrite will block creating a new one.
-            // Remove current session first (ignore errors if none).
             try {
                 await this.account.deleteSession('current');
             } catch (e) {
@@ -42,6 +40,7 @@ export class AuthService {
             // Correct SDK call for email+password session
             const session = await this.account.createEmailPasswordSession({email, password});
             return session;
+
         } catch (error) {
             console.error("Error logging in:", error);
             return null;

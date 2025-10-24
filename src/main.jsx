@@ -11,6 +11,8 @@ import { Provider } from 'react-redux'
 import store from './store/store.js'
 import RegisterPage from './pages/RegisterPage.jsx'
 import LoggedIn from './pages/LoggedIn.jsx'
+import CourseRatingsTest from './pages/CoursesReview.jsx'
+import AuthLayout from './pages/AuthLayout.jsx'
 const router = createBrowserRouter([
   {
     path: '/',
@@ -34,7 +36,12 @@ const router = createBrowserRouter([
       },
       {
         path:'/loggedin',
-        element:<LoggedIn/>
+        element:<AuthLayout authenticationStatus><LoggedIn/></AuthLayout>
+      },
+      {
+        path:'/course',
+        element:<CourseRatingsTest/>,
+
       }
       
      
