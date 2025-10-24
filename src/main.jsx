@@ -13,6 +13,9 @@ import RegisterPage from './pages/RegisterPage.jsx'
 import LoggedIn from './pages/LoggedIn.jsx'
 import CourseRatingsTest from './pages/CoursesReview.jsx'
 import AuthLayout from './pages/AuthLayout.jsx'
+import CourseDetail from './LayoutUI/courseUI/CourseDetail.jsx'
+import CourseDetailPage from './pages/CourseDetailPage.jsx'
+import ReviewSubmissionPage from './pages/ReviewSubmissionPage.jsx'
 const router = createBrowserRouter([
   {
     path: '/',
@@ -23,28 +26,34 @@ const router = createBrowserRouter([
         element: <Home />
       },
       {
-        path:"/clubs",
-        element:<Clubs/>
+        path: "/clubs",
+        element: <Clubs />
       },
       {
-        path:'/login',
-        element: <LoginPage/>
+        path: '/login',
+        element: <LoginPage />
       },
       {
-        path:'/register',
-        element:<RegisterPage/>
+        path: '/register',
+        element: <RegisterPage />
       },
       {
-        path:'/loggedin',
-        element:<AuthLayout authenticationStatus><LoggedIn/></AuthLayout>
+        path: '/loggedin',
+        element: <AuthLayout authenticationStatus><LoggedIn /></AuthLayout>
       },
       {
-        path:'/course',
-        element:<CourseRatingsTest/>,
+        path: '/course',
+        element: <CourseRatingsTest />,
+      },
+      {
+        path: '/courses/:courseId', // NEW: Dynamic Route for Course Details
+        element: <CourseDetailPage />
+      },
+      {
+        path: '/submit-review',
+        element: <ReviewSubmissionPage />
+      },
 
-      }
-      
-     
     ]
   }
 ])
@@ -52,7 +61,7 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-     <Provider store={store}>
+    <Provider store={store}>
       <RouterProvider router={router} />
     </Provider>
   </StrictMode>

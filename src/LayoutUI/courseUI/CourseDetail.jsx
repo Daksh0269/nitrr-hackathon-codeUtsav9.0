@@ -1,0 +1,102 @@
+import React from 'react';
+import { Star } from 'lucide-react';
+import Button from '../components/Button';
+import { useNavigate } from 'react-router-dom';
+
+/**
+ * Re-using the RatingStars component for consistency
+ * @param {number} rating - The score from 0 to 5.
+ */
+const RatingStars = ({ rating }) => {
+    const safeRating = Math.max(0, Math.min(5, rating));
+    const fullStars = Math.floor(safeRating);
+    const starsToRender = Math.ceil(safeRating);
+    const emptyStars = 5 - starsToRender;
+
+    return (
+        <div className="flex items-center space-x-0.5">
+            {[...Array(fullStars)].map((_, i) => (
+                <Star key={`full-${i}`} className="w-5 h-5 fill-yellow-500 text-yellow-500" />
+            ))}
+            {[...Array(emptyStars)].map((_, i) => (
+                <Star key={`empty-${i}`} className="w-5 h-5 text-gray-600" />
+            ))}
+             <span className="ml-3 text-lg font-semibold text-white">
+                {safeRating.toFixed(1)} / 5
+             </span>
+        </div>
+    );
+};
+
+
+/**
+ * Displays the full details of a single course.
+ */
+function CourseDetail({ course }) {
+    const navigate = useNavigate();
+    
+    // Handles the "Write a Review" button click
+    const handleWriteReview = () => {
+        navigate(`/submit-review?courseId=${course.$id}`);
+    };
+
+    return (
+        <div className="bg-black min-h-screen py-10">
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                
+                {/* Header Section */}
+                <div className="bg-[#181818] rounded-xl border border-[#333333] p-8 mb-8">
+                    <h1 className="text-4xl font-extrabold text-white mb-2">{course.title}</h1>
+                    
+                    <p className="text-xl text-blue-400 mb-6">
+                        <span className="text-gray-500">Instructor: </span>
+                        {course.instructor}
+                    </p>
+
+                    <div className="flex items-center justify-between flex-wrap gap-4">
+                        <RatingStars rating={parseFloat(course.rating) || 0} />
+                        
+                        <Button
+                            onClick={handleWriteReview} 
+                            variant="default" 
+                            size="lg"
+                        >
+                            Write a Review
+                        </Button>
+                    </div>
+                </div>
+
+                {/* Description and Details */}
+                <div className="bg-[#181818] rounded-xl border border-[#333333] p-8 mb-8">
+                    <h2 className="text-2xl font-bold text-white mb-4 border-b border-[#333333] pb-2">Course Overview</h2>
+                    <p className="text-base text-gray-300 whitespace-pre-wrap">{course.description}</p>
+                    
+                    {/* Placeholder for more metadata (e.g., duration, platform) */}
+                    <div className="mt-6 pt-4 border-t border-[#333333] text-sm text-gray-400">
+                        <p>Document ID: {course.$id}</p>
+                        <p>Created: {new Date(course.$createdAt).toLocaleDateString()}</p>
+                    </div>
+                </div>
+
+                {/* Reviews Section Placeholder */}
+                <div className="bg-[#181818] rounded-xl border border-[#333333] p-8">
+                    <h2 className="text-2xl font-bold text-white mb-4 border-b border-[#333333] pb-2">User Reviews</h2>
+                    <p className="text-gray-400">
+                        Reviews for this course will be loaded here using a separate Appwrite query based on the course ID.
+                    </p>
+                    <Button 
+                         variant="darkOutline" 
+                         size="sm" 
+                         className="mt-4"
+                         onClick={handleWriteReview}
+                    >
+                        Be the first to review!
+                    </Button>
+                </div>
+
+            </div>
+        </div>
+    );
+}
+
+export default CourseDetail;

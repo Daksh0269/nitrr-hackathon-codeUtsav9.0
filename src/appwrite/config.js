@@ -14,7 +14,7 @@ export class AppwriteService {
         this.Databases = new Databases(this.client);
         this.bucket = new Storage(this.client);
     }
-    
+
     // ... (Your existing methods: createPost, updateDocument, getPosts, etc.) ...
 
     // =========================================================================
@@ -29,181 +29,108 @@ export class AppwriteService {
      * @param {string} reviewText - The text review (optional).
      * @returns {Promise<object>} The newly created rating document.
      */
-    async submitCourseRating({ courseId, userId, stars, reviewText = "" }) {
+    async createReview({ content, stars, userId, username }) {
+        console.log({ content, stars, userId });
         try {
-            // Basic validation for stars (server-side validation is still recommended)
-            if (stars < 1 || stars > 5 || !Number.isInteger(stars)) {
-                throw new Error("Star rating must be an integer between 1 and 5.");
-            }
-
-            // Check for duplicate review (User cannot review the same course twice)
-            const existingRatings = await this.Databases.listDocuments(
+            return this.Databases.createDocument(
                 conf.appwriteDatabaseId,
-                conf.appwriteRatingsCollectionId,
-                [
-                    Query.equal('courseId', courseId),
-                    Query.equal('userId', userId),
-                    Query.limit(1) // Optimization: only need to find one
-                ]
-            );
-
-            if (existingRatings.total > 0) {
-                // Return null or throw a specific error to indicate a duplicate
-                throw new Error("You have already submitted a review for this course. Please use the update method.");
-            }
-            
-            // Create the new rating document
-            const newRating = await this.Databases.createDocument(
-                conf.appwriteDatabaseId,
-                conf.appwriteRatingsCollectionId,
-                ID.unique(), // Let Appwrite generate a unique ID for the rating
+                conf.appwriteCollectionId, // Used for Reviews
+                ID.unique(),
                 {
-                    courseId,
-                    userId,
+                    content,
                     stars,
-                    reviewText,
-                    // Note: Appwrite automatically adds $createdAt, which serves as dateCreated
+                    userId,
+                    username
                 }
             );
+        }
+        catch (error) {
+            console.error("Error creating post:", error);
 
-            // In a real-world scenario, you'd trigger a Cloud Function here to recalculate the average
-
-            return newRating;
-
-        } catch (error) {
-            console.error("Error submitting course rating:", error);
-            throw error;
         }
     }
 
-    /**
-     * @description Updates an existing user rating/review.
-     * @param {string} ratingId - The ID of the rating document to update.
-     * @param {object} data - Object containing fields to update (stars, reviewText).
-     * @returns {Promise<object>} The updated rating document.
-     */
-    async updateCourseRating(ratingId, { stars, reviewText }) {
+    async updateReview(slug, { title, content, featuredImage, status }) {
         try {
-             // Basic validation for stars
-             if (stars !== undefined && (stars < 1 || stars > 5 || !Number.isInteger(stars))) {
-                throw new Error("Star rating must be an integer between 1 and 5.");
-            }
-
-            // Update the document
-            const updatedRating = await this.Databases.updateDocument(
+            return await this.Databases.updateDocument(
                 conf.appwriteDatabaseId,
-                conf.appwriteRatingsCollectionId,
-                ratingId,
+                conf.appwriteCollectionId, // Used for Reviews
+                ID.unique(),
                 {
-                    // Only include defined fields to allow partial updates
-                    ...(stars !== undefined && { stars }),
-                    ...(reviewText !== undefined && { reviewText })
+                    title,
+                    content,
+                    featuredImage,
+                    status,
                 }
             );
-            
-            // In a real-world scenario, you'd trigger a Cloud Function here to recalculate the average
-
-            return updatedRating;
-
-        } catch (error) {
-            console.error("Error updating course rating:", error);
-            throw error;
         }
-    }
-
-    /**
-     * @description Deletes a rating/review.
-     * @param {string} ratingId - The ID of the rating document to delete.
-     * @returns {Promise<boolean>} True on success.
-     */
-    async deleteCourseRating(ratingId) {
-        try {
-            await this.Databases.deleteDocument(
-                conf.appwriteDatabaseId,
-                conf.appwriteRatingsCollectionId,
-                ratingId
-            );
-
-            // In a real-world scenario, you'd trigger a Cloud Function here to recalculate the average
-
-            return true;
-        } catch (error) {
-            console.error("Error deleting course rating:", error);
-            return false;
+        catch (error) {
+            console.error("Error updating document:", error);
         }
+
+
     }
-    
-    /**
-     * @description Fetches all ratings for a specific course.
-     * @param {string} courseId - The ID of the course.
-     * @param {Array<Query>} queries - Optional Appwrite Query array for filtering/sorting (e.g., Query.orderDesc('$createdAt')).
-     * @returns {Promise<object>} A list of rating documents.
-     */
-    async getCourseRatings(courseId, queries = []) {
+    async getReviews() {
         try {
             return await this.Databases.listDocuments(
                 conf.appwriteDatabaseId,
-                conf.appwriteRatingsCollectionId,
-                [
-                    Query.equal('courseId', courseId),
-                    ...queries
-                ]
+                conf.appwriteCollectionId, // Used for Reviews
+
             );
+
         } catch (error) {
-            console.error("Error fetching course ratings:", error);
-            return { documents: [], total: 0 };
+            console.error("Error fetching posts:", error);
         }
     }
 
-    /**
-     * @description Fetches the rating a specific user gave to a specific course.
-     * @param {string} courseId - The ID of the course.
-     * @param {string} userId - The ID of the user.
-     * @returns {Promise<object|null>} The rating document or null if not found.
-     */
-    async getUserCourseRating(courseId, userId) {
+    // NEW: Create a new Course document
+    async createCourse({ title, instructor, description, rating = 0 }) {
         try {
-            const result = await this.Databases.listDocuments(
+            return this.Databases.createDocument(
                 conf.appwriteDatabaseId,
-                conf.appwriteRatingsCollectionId,
-                [
-                    Query.equal('courseId', courseId),
-                    Query.equal('userId', userId),
-                    Query.limit(1)
-                ]
+                conf.appwriteCoursesCollectionId, // Target the Courses collection
+                ID.unique(),
+                {
+                    title,
+                    instructor,
+                    description,
+                    rating: String(rating),
+                }
             );
-            return result.documents.length > 0 ? result.documents[0] : null;
-        } catch (error) {
-            console.error("Error fetching user course rating:", error);
+        }
+        catch (error) {
+            console.error("Error creating course:", error);
             return null;
         }
     }
 
-    /**
-     * @description Updates a course document with new average rating/total counts (intended to be called by a Cloud Function trigger).
-     * @param {string} courseId - The ID of the course document.
-     * @param {number} averageRating - The newly calculated average star rating.
-     * @param {number} totalRatings - The total number of ratings.
-     * @returns {Promise<object>} The updated course document.
-     */
-    async updateCourseStats(courseId, { averageRating, totalRatings }) {
+    // NEW: Fetches all documents from the dedicated Courses Collection (used on /courses)
+    async getCourses() {
         try {
-            return await this.Databases.updateDocument(
+            const courses = await this.Databases.listDocuments(
                 conf.appwriteDatabaseId,
                 conf.appwriteCoursesCollectionId,
-                courseId,
-                {
-                    averageRating,
-                    totalRatings,
-                }
             );
+            return courses.documents;
         } catch (error) {
-            console.error("Error updating course stats:", error);
-            throw error;
+            console.error("Error fetching courses:", error);
+            return [];
         }
     }
 
-    // ... (Your other methods) ...
+    // NEW: Fetches a single Course document by ID (used on /courses/:courseId)
+    async getCourse(courseId) {
+        try {
+            return await this.Databases.getDocument(
+                conf.appwriteDatabaseId,
+                conf.appwriteCoursesCollectionId,
+                courseId
+            );
+        } catch (error) {
+            console.error("Error fetching single course:", error);
+            return null;
+        }
+    }
 }
 
 

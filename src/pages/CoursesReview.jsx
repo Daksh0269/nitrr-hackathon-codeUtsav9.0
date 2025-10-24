@@ -1,115 +1,90 @@
-import React, { useEffect, useState } from "react";
-import Service from "../appwrite/config";
-import authService from "../appwrite/auth";
-import RatingForm from "../forms/RatingForm";
-import RatingsList from "../forms/RatingList";
+import React, { useState, useEffect } from 'react'
+import GridPageWrapper from '../LayoutUI/ClubsUI/GridWrapper';
+import Service from '../appwrite/config'; // Import Appwrite Service
+import CourseCard from '../LayoutUI/courseUI/CourseCard'
 
-export default function CourseRatingsTest() {
-  const [courseId, setCourseId] = useState("");
-  const [ratings, setRatings] = useState([]);
-  const [userRating, setUserRating] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [userId, setUserId] = useState(null);
-  const [error, setError] = useState(null);
+const CoursesAndReviews = () => {
+    const [courses, setCourses] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-  useEffect(() => {
-    (async () => {
-      const user = await authService.getCurrentUser();
-      if (user) setUserId(user.$id);
-    })();
-  }, []);
+    useEffect(() => {
+        setLoading(true);
+        Service.getCourses()
+            .then((data) => {
+                if (data && data.length > 0) {
+                    setCourses(data);
+                } else {
+                    // Fallback or empty state if database is empty
+                    setCourses([]);
+                }
+            })
+            .catch((err) => {
+                console.error("Failed to fetch courses:", err);
+                setError("Failed to load courses from the server. Check Appwrite config.");
+            })
+            .finally(() => {
+                setLoading(false);
+            });
+    }, []);
 
-  const loadRatings = async () => {
-    if (!courseId) return setError("Enter courseId first");
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await Service.getCourseRatings(courseId, [/* optional queries */]);
-      setRatings(res.documents || []);
-      const ur = await Service.getUserCourseRating(courseId, userId);
-      setUserRating(ur);
-    } catch (e) {
-      console.error(e);
-      setError(e.message || "Failed to load ratings");
-    } finally {
-      setLoading(false);
+    const handleViewDetails = (title) => {
+        console.log(`Navigating to details for: ${title}`);
+    };
+
+    const handleWriteReview = (id) => {
+        console.log(`Opening review form for course ID: ${id}`);
+    };
+
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center min-h-screen bg-black text-white p-8">
+                <p className="text-xl text-blue-500">Loading courses...</p>
+            </div>
+        );
     }
-  };
 
-  const handleSubmit = async ({ stars, reviewText }) => {
-    setError(null);
-    try {
-      await Service.submitCourseRating({ courseId, userId, stars, reviewText });
-      await loadRatings();
-    } catch (e) {
-      console.error(e);
-      setError(e.message || "Failed to submit rating");
+    if (error) {
+        return (
+            <div className="flex justify-center items-center min-h-screen bg-black text-white p-8">
+                <p className="text-xl text-red-500">{error}</p>
+            </div>
+        );
     }
-  };
+    
+    // Map Appwrite documents to expected CourseCard props
+    const transformedCourses = courses.map(course => ({
+        id: course.$id, // Use Appwrite's unique document ID
+        title: course.title || "Untitled Course",
+        instructor: course.instructor || "Unknown Instructor",
+        rating: parseFloat(course.rating) || 0, 
+        description: course.description || "No description available.",
+        // Assumes your Appwrite documents have attributes 'title', 'instructor', 'rating', 'description'
+    }));
 
-  const handleUpdate = async (ratingId, data) => {
-    try {
-      await Service.updateCourseRating(ratingId, data);
-      await loadRatings();
-    } catch (e) {
-      console.error(e);
-      setError(e.message || "Failed to update rating");
-    }
-  };
 
-  const handleDelete = async (ratingId) => {
-    try {
-      await Service.deleteCourseRating(ratingId);
-      await loadRatings();
-    } catch (e) {
-      console.error(e);
-      setError(e.message || "Failed to delete rating");
-    }
-  };
-
-  const average = ratings.length
-    ? (ratings.reduce((s, r) => s + (r.stars || 0), 0) / ratings.length).toFixed(2)
-    : "—";
-
-  return (
-    <div className="p-6 max-w-3xl mx-auto">
-      <h2 className="text-2xl font-semibold mb-4">Course Ratings Tester</h2>
-
-      <div className="mb-4 flex gap-2">
-        <input
-          value={courseId}
-          onChange={(e) => setCourseId(e.target.value)}
-          placeholder="Enter courseId to test"
-          className="border px-3 py-2 rounded w-full"
-        />
-        <button onClick={loadRatings} className="bg-blue-600 text-white px-4 py-2 rounded">
-          Load
-        </button>
-      </div>
-
-      <div className="mb-4">
-        <strong>Average:</strong> {average} · <strong>Total:</strong> {ratings.length}
-      </div>
-
-      {error && <div className="text-red-600 mb-4">{error}</div>}
-
-      <div className="grid grid-cols-1 gap-6">
-        <div className="p-4 border rounded">
-          <h3 className="font-medium mb-2">Your rating</h3>
-          <RatingForm
-            initialData={userRating}
-            onSubmit={handleSubmit}
-            onUpdate={(data) => handleUpdate(userRating.$id, data)}
-            onDelete={() => handleDelete(userRating.$id)}
-            disabled={!userId}
-          />
-        </div>
-
-        <div className="p-4 border rounded">
-          <h3 className="font-medium mb-2">All ratings</h3>
-          {loading ? <div>Loading…</div> : <RatingsList ratings={ratings} currentUserId={userId} onDelete={handleDelete} onUpdate={handleUpdate} />}
-        </div>
-      </div>
-    </div>
-  );
+    return (
+        <GridPageWrapper minCardWidth={300}>
+            {transformedCourses.length > 0 ? (
+                transformedCourses.map((course) => (
+                    <CourseCard
+                        key={course.id}
+                        title={course.title}
+                        instructor={course.instructor}
+                        rating={course.rating}
+                        description={course.description}
+                        onView={() => handleViewDetails(course.title)}
+                        onReview={() => handleWriteReview(course.id)}
+                    />
+                ))
+            ) : (
+                <div className="text-white text-center col-span-full pt-10">
+                    <p className="text-2xl font-bold mb-2">No Courses Found</p>
+                    <p className="text-gray-400">The courses database is currently empty.</p>
+                </div>
+            )}
+        </GridPageWrapper>
+    );
 }
+
+export default CoursesAndReviews;
