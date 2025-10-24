@@ -1,17 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+// Note: You must ensure CourseDetail.jsx exists and has the code from the previous step.
 import CourseDetail from '../LayoutUI/courseUI/CourseDetail';
 import Service from '../appwrite/config'; 
 
 function CourseDetailPage() {
-    const { courseId } = useParams(); // Get the dynamic part of the URL
+    // CRITICAL: Ensure the name here matches the route parameter in main.jsx (:courseId)
+    const { courseId } = useParams(); 
     const [course, setCourse] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
     useEffect(() => {
+        // ADDED LOG for debugging the exact ID value
+        console.log('CourseDetailPage useEffect triggered. Received ID:', courseId); 
+        
         if (!courseId) {
-            setError("No Course ID provided in the URL.");
+            setError("Error: Course ID is missing from the URL. Cannot fetch details.");
             setLoading(false);
             return;
         }
@@ -22,12 +27,12 @@ function CourseDetailPage() {
                 if (data) {
                     setCourse(data);
                 } else {
-                    setError("Course not found or failed to fetch.");
+                    setError(`Course with ID "${courseId}" not found.`);
                 }
             })
             .catch((err) => {
                 console.error("Error fetching course details:", err);
-                setError("An error occurred while fetching course data.");
+                setError("An unexpected error occurred while fetching course data.");
             })
             .finally(() => {
                 setLoading(false);
@@ -50,7 +55,6 @@ function CourseDetailPage() {
         );
     }
     
-    // Pass the fetched course data to the detail component
     return <CourseDetail course={course} />;
 }
 

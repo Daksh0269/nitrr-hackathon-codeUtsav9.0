@@ -32,13 +32,13 @@ const RatingStars = ({ rating }) => {
  * A Card component tailored for courses and reviews.
  * The 'View Details' button navigates to the dynamic route /courses/:id.
  */
-function CourseCard({ $id, title, instructor, rating, description, onReview }) {
+function CourseCard({ id, title, instructor, rating, description, onReview }) {
+    // ^^^ 'id' is now correctly destructured and available ^^^
     const navigate = useNavigate();
-    console.log("id",$id)
 
     const handleViewDetails = () => {
-        // Navigate to the dynamic course detail page using the course's unique ID
-        navigate(`/courses/${id}`);
+        // Line 41: 'id' is now correctly referenced
+        navigate(`/courses/${id}`); 
     };
 
     return (
@@ -57,7 +57,6 @@ function CourseCard({ $id, title, instructor, rating, description, onReview }) {
 
             {/* Rating */}
             <div className="mb-4">
-                {/* Note: Ensure the 'rating' prop you pass from the database is a number */}
                 <RatingStars rating={parseFloat(rating) || 0} /> 
             </div>
 

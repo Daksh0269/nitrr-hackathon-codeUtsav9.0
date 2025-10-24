@@ -16,6 +16,7 @@ import AuthLayout from './pages/AuthLayout.jsx'
 import CourseDetail from './LayoutUI/courseUI/CourseDetail.jsx'
 import CourseDetailPage from './pages/CourseDetailPage.jsx'
 import ReviewSubmissionPage from './pages/ReviewSubmissionPage.jsx'
+import CoursesAndReviews from './pages/CoursesReview.jsx'
 const router = createBrowserRouter([
   {
     path: '/',
@@ -42,8 +43,8 @@ const router = createBrowserRouter([
         element: <AuthLayout authenticationStatus><LoggedIn /></AuthLayout>
       },
       {
-        path: '/course',
-        element: <CourseRatingsTest />,
+        path: '/courses',
+        element: <CoursesAndReviews/>,
       },
       {
         path: '/courses/:courseId', // NEW: Dynamic Route for Course Details

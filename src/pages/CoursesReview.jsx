@@ -1,10 +1,12 @@
+// src/pages/Courses&Review.jsx (Restored)
 import React, { useState, useEffect } from 'react'
 import GridPageWrapper from '../LayoutUI/ClubsUI/GridWrapper';
-import CourseCard from '../LayoutUI/courseUI/CourseCard';
+import CourseCard from '../LayoutUI/courseUI/CourseCard'
 import Service from '../appwrite/config'; 
 import { useNavigate } from 'react-router-dom';
-import Button from '../LayoutUI/components/Button';
-const CoursesAndReviews = () => {
+import Button from '../LayoutUI/components/Button'; // Needed for the Add Course button
+
+const CoursesAndReviews = () => { 
     const [courses, setCourses] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -12,7 +14,6 @@ const CoursesAndReviews = () => {
 
     useEffect(() => {
         setLoading(true);
-        // CRITICAL: Fetches data, including the Appwrite document $id
         Service.getCourses()
             .then((data) => {
                 if (data && data.length > 0) {
@@ -23,7 +24,7 @@ const CoursesAndReviews = () => {
             })
             .catch((err) => {
                 console.error("Failed to fetch courses:", err);
-                setError("Failed to load courses from the server. Check Appwrite config.");
+                setError("Failed to load courses from the server. Check Appwrite config and permissions.");
             })
             .finally(() => {
                 setLoading(false);
@@ -50,9 +51,8 @@ const CoursesAndReviews = () => {
         );
     }
     
-    // CRITICAL: Maps the course.$id to the CourseCard 'id' prop
     const transformedCourses = courses.map(course => ({
-        id: course.$id, // THIS IS WHERE THE ID IS SET
+        id: course.$id, // CRITICAL: Getting the Appwrite document ID
         title: course.title || "Untitled Course",
         instructor: course.instructor || "Unknown Instructor",
         rating: parseFloat(course.rating) || 0, 
@@ -76,7 +76,7 @@ const CoursesAndReviews = () => {
                 transformedCourses.map((course) => (
                     <CourseCard
                         key={course.id}
-                        id={course.id} // The ID is passed here
+                        id={course.id} // Passing the ID to the card
                         title={course.title}
                         instructor={course.instructor}
                         rating={course.rating}
@@ -94,4 +94,5 @@ const CoursesAndReviews = () => {
     );
 }
 
+// Ensure this export name matches the import in main.jsx
 export default CoursesAndReviews;
