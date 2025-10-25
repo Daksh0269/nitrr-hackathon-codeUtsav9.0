@@ -34,7 +34,7 @@ export class AppwriteService {
         try {
             return this.Databases.createDocument(
                 conf.appwriteDatabaseId,
-                conf.appwriteCollectionId, // Used for Reviews
+                conf.appwriteReviewsCollectionId, // Used for Reviews
                 ID.unique(),
                 {
                     content,
