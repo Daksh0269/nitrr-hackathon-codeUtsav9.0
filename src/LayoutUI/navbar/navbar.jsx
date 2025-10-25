@@ -32,7 +32,7 @@ const Navbar = () => {
     const navItems = [
         { name: 'Home', slug: '/' },
         { name: 'Clubs', slug: '/clubs' },
-        { name: 'Courses', slug: '/course' },
+        { name: 'Courses', slug: '/courses' },
         { name: 'Blog', slug: '/Blog' },
     ];
 
