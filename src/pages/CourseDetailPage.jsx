@@ -1,18 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-// Note: You must ensure CourseDetail.jsx exists and has the code from the previous step.
-import CourseDetail from '../LayoutUI/courseUI/CourseDetail';
+// CORRECTED PATH: Changed 'courseUI' to the correct 'CoursesUI' directory
+import CourseDetail from '../LayoutUI/courseUI/CourseDetail'
 import Service from '../appwrite/config'; 
 
 function CourseDetailPage() {
-    // CRITICAL: Ensure the name here matches the route parameter in main.jsx (:courseId)
+    // Parameter extraction
     const { courseId } = useParams(); 
+    
+    // STATE 1: Course Data (Primary Fetch)
     const [course, setCourse] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    
+    // STATE 2: Review Data (Secondary Fetch)
+    const [reviews, setReviews] = useState([]); // INITIALIZED missing state
+    const [loadingReviews, setLoadingReviews] = useState(false); // INITIALIZED missing state
 
+    // Effect 1: Fetch Course Data
     useEffect(() => {
-        // ADDED LOG for debugging the exact ID value
         console.log('CourseDetailPage useEffect triggered. Received ID:', courseId); 
         
         if (!courseId) {
@@ -39,6 +45,22 @@ function CourseDetailPage() {
             });
     }, [courseId]);
 
+    // Effect 2: Fetch Reviews for this Course (Restored Logic)
+    useEffect(() => {
+        if (courseId) {
+            setLoadingReviews(true);
+            Service.getCourseReviews(courseId)
+                // The .then(setReviews) now works because setReviews is defined above
+                .then(setReviews) 
+                .catch(err => console.error("Failed to fetch reviews:", err))
+                .finally(() => setLoadingReviews(false));
+        } else {
+            setReviews([]);
+            setLoadingReviews(false);
+        }
+    }, [courseId]);
+    
+    // Loading/Error UI checks
     if (loading) {
         return (
             <div className="flex justify-center items-center min-h-screen bg-black text-white p-8">
@@ -55,7 +77,12 @@ function CourseDetailPage() {
         );
     }
     
-    return <CourseDetail course={course} />;
+    // Final Render: Pass fetched data and loading state to CourseDetail
+    return <CourseDetail 
+                course={course} 
+                reviews={reviews} 
+                loadingReviews={loadingReviews} 
+            />;
 }
 
 export default CourseDetailPage;

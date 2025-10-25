@@ -71,17 +71,13 @@ function ReviewForm() { // Removed courseId prop, now fetched from URL
             const reviewData = {
                 content: data.content,
                 stars: parseInt(data.stars),
-                userId: userData.$id, // CRITICAL: Requires logged-in user's ID
-                username: userData.name, // CRITICAL: Requires logged-in user's name
-                // NOTE: For a complete solution, you need a 'courseId' attribute in your Appwrite reviews collection schema.
-                // If you had it, you would add: course_id: courseId, 
+                userId: userData.$id,
+                username: userData.name,
+                courseId: courseId,
             };
 
-            // Console log the data being sent to debug permissions/data issues
-            console.log("Submitting Review Data:", reviewData);
-
+            // Pass the updated payload to the service
             const review = await Service.createReview(reviewData);
-
             if (review) {
                 // Navigate to the user's reviews or the course page
                 navigate('/your-reviews');

@@ -29,24 +29,27 @@ export class AppwriteService {
      * @param {string} reviewText - The text review (optional).
      * @returns {Promise<object>} The newly created rating document.
      */
-    async createReview({ content, stars, userId, username }) {
-        console.log({ content, stars, userId });
+    // src/appwrite/config.js (Modified)
+
+    // Note: Add courseId to the destructured parameters
+    async createReview({ content, stars, userId, username, courseId }) {
+        console.log({ content, stars, userId, username, courseId }); // Log the new data
         try {
             return this.Databases.createDocument(
                 conf.appwriteDatabaseId,
-                conf.appwriteReviewsCollectionId, // Used for Reviews
+                "reviews", // Used for Reviews
                 ID.unique(),
                 {
                     content,
                     stars,
                     userId,
-                    username
+                    username,
+                    courseId // <<< REQUIRED BY APPWRITE SCHEMA
                 }
             );
         }
         catch (error) {
             console.error("Error creating post:", error);
-
         }
     }
 
@@ -54,7 +57,7 @@ export class AppwriteService {
         try {
             return await this.Databases.updateDocument(
                 conf.appwriteDatabaseId,
-                conf.appwriteCollectionId, // Used for Reviews
+                "reviews", // Used for Reviews
                 ID.unique(),
                 {
                     title,
@@ -74,7 +77,7 @@ export class AppwriteService {
         try {
             return await this.Databases.listDocuments(
                 conf.appwriteDatabaseId,
-                conf.appwriteCollectionId, // Used for Reviews
+                "reviews", // Used for Reviews
 
             );
 
@@ -103,8 +106,25 @@ export class AppwriteService {
             return null;
         }
     }
+    async getCourseReviews(courseId) {
+        try {
+            const reviews = await this.Databases.listDocuments(
+                conf.appwriteDatabaseId,
+                "reviews", // This is the Reviews Collection ID
+                [
+                    // CRITICAL: Filter where the 'courseId' attribute in the reviews collection equals the current course's ID
+                    Query.equal('courseId', courseId),
+                    Query.orderDesc('$createdAt'), // Order by most recent reviews
+                ]
+            );
+            return reviews.documents; // Returns an array of review documents
+        } catch (error) {
+            console.error("Error fetching course reviews:", error);
+            return [];
+        }
+    }
 
-    // NEW: Fetches all documents from the dedicated Courses Collection (used on /courses)
+
     async getCourses() {
         try {
             const courses = await this.Databases.listDocuments(

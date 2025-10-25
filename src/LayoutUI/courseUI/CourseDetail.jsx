@@ -2,6 +2,7 @@ import React from 'react';
 import { Star } from 'lucide-react';
 import Button from '../components/Button';
 import { useNavigate } from 'react-router-dom';
+import ReviewCard from './ReviewCard'; // Assumed component for single review display
 
 /**
  * Re-using the RatingStars component for consistency
@@ -10,8 +11,7 @@ import { useNavigate } from 'react-router-dom';
 const RatingStars = ({ rating }) => {
     const safeRating = Math.max(0, Math.min(5, rating));
     const fullStars = Math.floor(safeRating);
-    const starsToRender = Math.ceil(safeRating);
-    const emptyStars = 5 - starsToRender;
+    const emptyStars = 5 - Math.ceil(safeRating);
 
     return (
         <div className="flex items-center space-x-0.5">
@@ -30,13 +30,14 @@ const RatingStars = ({ rating }) => {
 
 
 /**
- * Displays the full details of a single course.
+ * Displays the full details of a single course, now with reviews.
  */
-function CourseDetail({ course }) {
+function CourseDetail({ course, reviews, loadingReviews }) { // <<< UPDATED PROPS
     const navigate = useNavigate();
     
     // Handles the "Write a Review" button click
     const handleWriteReview = () => {
+        // Navigates using the course's ID
         navigate(`/submit-review?courseId=${course.$id}`);
     };
 
@@ -71,27 +72,45 @@ function CourseDetail({ course }) {
                     <h2 className="text-2xl font-bold text-white mb-4 border-b border-[#333333] pb-2">Course Overview</h2>
                     <p className="text-base text-gray-300 whitespace-pre-wrap">{course.description}</p>
                     
-                    {/* Placeholder for more metadata (e.g., duration, platform) */}
                     <div className="mt-6 pt-4 border-t border-[#333333] text-sm text-gray-400">
                         <p>Document ID: {course.$id}</p>
                         <p>Created: {new Date(course.$createdAt).toLocaleDateString()}</p>
                     </div>
                 </div>
 
-                {/* Reviews Section Placeholder */}
+                {/* Reviews Section: Now Dynamic */}
                 <div className="bg-[#181818] rounded-xl border border-[#333333] p-8">
-                    <h2 className="text-2xl font-bold text-white mb-4 border-b border-[#333333] pb-2">User Reviews</h2>
-                    <p className="text-gray-400">
-                        Reviews for this course will be loaded here using a separate Appwrite query based on the course ID.
-                    </p>
-                    <Button 
-                         variant="darkOutline" 
-                         size="sm" 
-                         className="mt-4"
-                         onClick={handleWriteReview}
-                    >
-                        Be the first to review!
-                    </Button>
+                    <h2 className="text-2xl font-bold text-white mb-4 border-b border-[#333333] pb-2">
+                        User Reviews ({reviews?.length || 0})
+                    </h2>
+                    
+                    {loadingReviews ? (
+                        <p className="text-blue-400 text-center py-4">Loading user reviews...</p>
+                    ) : reviews && reviews.length > 0 ? (
+                        <div className="space-y-4">
+                            {reviews.map(review => (
+                                <ReviewCard
+                                    key={review.$id}
+                                    username={review.username}
+                                    content={review.content} 
+                                    stars={review.stars}
+                                    createdAt={review.$createdAt}
+                                />
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="text-center py-4">
+                            <p className="text-gray-400">No reviews yet. Be the first!</p>
+                             <Button 
+                                 variant="darkOutline" 
+                                 size="sm" 
+                                 className="mt-4"
+                                 onClick={handleWriteReview}
+                            >
+                                Write a Review
+                            </Button>
+                        </div>
+                    )}
                 </div>
 
             </div>
