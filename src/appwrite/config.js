@@ -15,23 +15,8 @@ export class AppwriteService {
         this.bucket = new Storage(this.client);
     }
 
-    // ... (Your existing methods: createPost, updateDocument, getPosts, etc.) ...
 
-    // =========================================================================
-    //                  ⭐ COURSE REVIEW/RATING FUNCTIONALITY ⭐
-    // =========================================================================
-
-    /**
-     * @description Submits a new rating/review for a course.
-     * @param {string} courseId - The ID of the course being reviewed.
-     * @param {string} userId - The ID of the user submitting the review (Appwrite User ID).
-     * @param {number} stars - The star rating (1-5).
-     * @param {string} reviewText - The text review (optional).
-     * @returns {Promise<object>} The newly created rating document.
-     */
-    // src/appwrite/config.js (Modified)
-
-    // Note: Add courseId to the destructured parameters
+   
     async createReview({ content, stars, userId, username, courseId }) {
         console.log({ content, stars, userId, username, courseId }); // Log the new data
         try {

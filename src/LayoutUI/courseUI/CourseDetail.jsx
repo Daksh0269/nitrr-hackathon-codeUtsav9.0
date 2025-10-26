@@ -30,9 +30,12 @@ const RatingStars = ({ rating }) => {
 
 
 /**
- * Displays the full details of a single course, now with reviews.
+ * Displays the full details of a single course, now with dynamic review data.
+ * @param {Object} props.course - The fetched course document.
+ * @param {Array} props.reviews - The fetched list of reviews for this course.
+ * @param {boolean} props.loadingReviews - Loading state for reviews.
  */
-function CourseDetail({ course, reviews, loadingReviews }) { // <<< UPDATED PROPS
+function CourseDetail({ course, reviews, loadingReviews }) {
     const navigate = useNavigate();
     
     // Handles the "Write a Review" button click
@@ -55,6 +58,8 @@ function CourseDetail({ course, reviews, loadingReviews }) { // <<< UPDATED PROP
                     </p>
 
                     <div className="flex items-center justify-between flex-wrap gap-4">
+                        {/* Rating here uses the static rating stored on the course document, 
+                            which is fine for new courses. We rely on the review count below. */}
                         <RatingStars rating={parseFloat(course.rating) || 0} />
                         
                         <Button
