@@ -10,19 +10,22 @@ import { useNavigate } from 'react-router-dom';
 const RatingStars = ({ rating }) => {
     const safeRating = Math.max(0, Math.min(5, rating));
     const fullStars = Math.floor(safeRating);
-    const emptyStars = 5 - Math.ceil(safeRating);
+    // ⭐️ FIX: Calculate empty stars as the difference between 5 and fullStars, NOT Math.ceil(safeRating).
+    const emptyStars = 5 - fullStars; //
 
     return (
         <div className="flex items-center space-x-0.5">
-            {/* Full Stars */}
             {[...Array(fullStars)].map((_, i) => (
-                <Star key={`full-${i}`} className="w-4 h-4 fill-yellow-500 text-yellow-500" />
+                <Star key={`full-${i}`} className="w-5 h-5 fill-yellow-500 text-yellow-500" />
             ))}
-            {/* Empty Stars */}
             {[...Array(emptyStars)].map((_, i) => (
-                <Star key={`empty-${i}`} className="w-4 h-4 text-gray-600" />
+                // If rating is 5, fullStars is 5, emptyStars is 0.
+                // If rating is 4, fullStars is 4, emptyStars is 1. (Renders 4 full, 1 empty)
+                <Star key={`empty-${i}`} className="w-5 h-5 text-gray-600" />
             ))}
-             <span className="ml-2 text-xs text-gray-400">({safeRating.toFixed(1)})</span>
+             <span className="ml-3 text-lg font-semibold text-white">
+                {safeRating.toFixed(1)} / 5
+             </span>
         </div>
     );
 };
