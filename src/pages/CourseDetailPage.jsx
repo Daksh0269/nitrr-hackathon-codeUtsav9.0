@@ -1,12 +1,13 @@
+// File: src/pages/CourseDetailPage.jsx
+
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-// CORRECTED PATH: Changed 'courseUI' to the correct 'CoursesUI' directory
-import CourseDetail from '../LayoutUI/courseUI/CourseDetail'
+import CourseDetail from '../LayoutUI/courseUI/CourseDetail' // Ensure this path is correct
 import Service from '../appwrite/config'; 
 
 function CourseDetailPage() {
     // Parameter extraction
-    const { courseId } = useParams(); 
+    const { courseId } = useParams();
     
     // STATE 1: Course Data (Primary Fetch)
     const [course, setCourse] = useState(null);
@@ -14,21 +15,20 @@ function CourseDetailPage() {
     const [error, setError] = useState(null);
     
     // STATE 2: Review Data (Secondary Fetch)
-    const [reviews, setReviews] = useState([]); // INITIALIZED missing state
-    const [loadingReviews, setLoadingReviews] = useState(false); // INITIALIZED missing state
+    const [reviews, setReviews] = useState([]);
+    const [averageRating, setAverageRating] = useState(0); 
+    const [loadingReviews, setLoadingReviews] = useState(false); 
 
     // Effect 1: Fetch Course Data
     useEffect(() => {
-        console.log('CourseDetailPage useEffect triggered. Received ID:', courseId); 
-        
         if (!courseId) {
-            setError("Error: Course ID is missing from the URL. Cannot fetch details.");
+            setError("Error: Course ID is missing from the URL.");
             setLoading(false);
             return;
         }
 
         setLoading(true);
-        Service.getCourse(courseId)
+        Service.getCourse(courseId) // Fetches course document (which contains the aggregated 'rating' used by the Card)
             .then((data) => {
                 if (data) {
                     setCourse(data);
@@ -45,17 +45,27 @@ function CourseDetailPage() {
             });
     }, [courseId]);
 
-    // Effect 2: Fetch Reviews for this Course (Restored Logic)
+    // Effect 2: Fetch Reviews for this Course and Calculate Real-Time Rating (for the details page)
     useEffect(() => {
         if (courseId) {
             setLoadingReviews(true);
-            Service.getCourseReviews(courseId)
-                // The .then(setReviews) now works because setReviews is defined above
-                .then(setReviews) 
+            Service.getCourseReviews(courseId) // Fetches all individual reviews
+                .then((fetchedReviews) => {
+                    setReviews(fetchedReviews);
+                    
+                    if (fetchedReviews && fetchedReviews.length > 0) {
+                        const totalStars = fetchedReviews.reduce((sum, review) => sum + (review.stars || 0), 0);
+                        const avg = totalStars / fetchedReviews.length;
+                        setAverageRating(parseFloat(avg.toFixed(1))); 
+                    } else {
+                        setAverageRating(0); 
+                    }
+                }) 
                 .catch(err => console.error("Failed to fetch reviews:", err))
                 .finally(() => setLoadingReviews(false));
         } else {
             setReviews([]);
+            setAverageRating(0);
             setLoadingReviews(false);
         }
     }, [courseId]);
@@ -77,10 +87,11 @@ function CourseDetailPage() {
         );
     }
     
-    // Final Render: Pass fetched data and loading state to CourseDetail
+    // Final Render: Pass fetched data and calculated rating
     return <CourseDetail 
                 course={course} 
                 reviews={reviews} 
+                averageRating={averageRating} // Pass the calculated rating
                 loadingReviews={loadingReviews} 
             />;
 }

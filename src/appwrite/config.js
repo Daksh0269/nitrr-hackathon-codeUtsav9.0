@@ -29,7 +29,7 @@ export class AppwriteService {
                     stars,
                     userId,
                     username,
-                    courseId // <<< REQUIRED BY APPWRITE SCHEMA
+                    courseId 
                 }
             );
         }
@@ -91,18 +91,18 @@ export class AppwriteService {
             return null;
         }
     }
-    async getCourseReviews(courseId) {
+   async getCourseReviews(courseId) {
         try {
             const reviews = await this.Databases.listDocuments(
                 conf.appwriteDatabaseId,
-                "reviews", // This is the Reviews Collection ID
+                "reviews",
                 [
-                    // CRITICAL: Filter where the 'courseId' attribute in the reviews collection equals the current course's ID
-                    Query.equal('courseId', courseId),
-                    Query.orderDesc('$createdAt'), // Order by most recent reviews
+                    Query.equal('courseId', courseId), 
+                    Query.orderDesc('$createdAt')
                 ]
             );
-            return reviews.documents; // Returns an array of review documents
+            // Returning the documents array
+            return reviews.documents || []; 
         } catch (error) {
             console.error("Error fetching course reviews:", error);
             return [];
@@ -134,6 +134,35 @@ export class AppwriteService {
         } catch (error) {
             console.error("Error fetching single course:", error);
             return null;
+        }
+    }
+    async updateCourseRating(courseId) {
+        try {
+            // 1. Fetch ALL reviews for this course
+            const reviews = await this.getCourseReviews(courseId);
+
+            let newAvgRating = 0;
+            
+            if (reviews && reviews.length > 0) {
+                const totalStars = reviews.reduce((sum, review) => sum + (review.stars || 0), 0);
+                // Calculate average and round to 1 decimal point
+                newAvgRating = parseFloat((totalStars / reviews.length).toFixed(1)); 
+            }
+            
+            // 2. Update the Course Document with the correct column name 'rating'
+            await this.Databases.updateDocument(
+                conf.appwriteDatabaseId,
+                conf.appwriteCoursesCollectionId, // Your Courses Collection ID
+                courseId,
+                {
+                    // 🚨 USE THE COLUMN NAME FROM YOUR SCHEMA IMAGE
+                    rating: newAvgRating,
+                    totalReviews: reviews.length // Optional, but good practice
+                }
+            );
+            console.log(`Updated rating for course ${courseId}: ${newAvgRating} stars across ${reviews.length} reviews.`);
+        } catch (error) {
+            console.error(`Failed to update rating for course ${courseId}:`, error);
         }
     }
 }
