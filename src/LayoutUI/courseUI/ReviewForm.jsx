@@ -80,7 +80,7 @@ function ReviewForm() { // Removed courseId prop, now fetched from URL
             const review = await Service.createReview(reviewData);
             if (review) {
                 // Navigate to the user's reviews or the course page
-                navigate('/your-reviews');
+                navigate('/courses');
             } else {
                 setError("Review submission failed. Check server logs or permissions.");
             }

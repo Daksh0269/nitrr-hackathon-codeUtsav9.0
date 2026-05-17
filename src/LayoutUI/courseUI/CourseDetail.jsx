@@ -53,7 +53,7 @@ function CourseDetail({ course, reviews, loadingReviews, averageRating }) {
                     
                     <p className="text-xl text-blue-400 mb-6">
                         <span className="text-gray-500">Instructor: </span>
-                        {course.instructor}
+                        {course.provider}
                     </p>
 
                     <div className="flex items-center justify-between flex-wrap gap-4">

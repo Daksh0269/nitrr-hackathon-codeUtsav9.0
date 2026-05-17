@@ -72,7 +72,7 @@ export class AppwriteService {
     }
 
     // NEW: Create a new Course document
-    async createCourse({ title, instructor, description, rating = 0 }) {
+    async createCourse({ title, provider, description, rating = 0 }) {
         try {
             return this.Databases.createDocument(
                 conf.appwriteDatabaseId,
@@ -80,7 +80,7 @@ export class AppwriteService {
                 ID.unique(),
                 {
                     title,
-                    instructor,
+                    provider,
                     description,
                     rating: String(rating),
                 }
@@ -163,6 +163,73 @@ export class AppwriteService {
             console.log(`Updated rating for course ${courseId}: ${newAvgRating} stars across ${reviews.length} reviews.`);
         } catch (error) {
             console.error(`Failed to update rating for course ${courseId}:`, error);
+        }
+    }
+    async uploadFile(file) {
+        try {
+            return await this.bucket.createFile(
+                conf.appwriteBucketId,
+                ID.unique(),
+                file
+            );
+        } catch (error) {
+            console.error("Error uploading file:", error);
+            return null;
+        }
+    }
+    async createNote({ title, subject, userId, username, fileId }) {
+        try {
+            return await this.Databases.createDocument(
+                conf.appwriteDatabaseId,
+                conf.appwriteNotesCollectionId,
+                ID.unique(),
+                {
+                    title,
+                    subject,
+                    userId,
+                    username,
+                    fileId
+                }
+            );
+        } catch (error) {
+            console.error("Error creating note document:", error);
+            return null;
+        }
+    }
+    async getNotes() {
+        try {
+            const response = await this.Databases.listDocuments(
+                conf.appwriteDatabaseId,
+                conf.appwriteNotesCollectionId,
+                [Query.orderDesc('$createdAt')] // Show newest notes first
+            );
+            return response.documents;
+        } catch (error) {
+            console.error("Error fetching notes:", error);
+            return [];
+        }
+    }
+    getFilePreview(fileId) {
+        // This doesn't need to be async, it just generates the URL
+        try {
+            return this.bucket.getFilePreview(
+                conf.appwriteBucketId,
+                fileId
+            );
+        } catch (error) {
+            console.error("Error getting file preview:", error);
+            return null;
+        }
+    }
+    getFileDownload(fileId) {
+        try {
+            return this.bucket.getFileDownload(
+                conf.appwriteBucketId, //
+                fileId
+            );
+        } catch (error) {
+            console.error("Error getting file download URL:", error);
+            return null;
         }
     }
 }

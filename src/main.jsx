@@ -17,6 +17,10 @@ import CourseDetail from './LayoutUI/courseUI/CourseDetail.jsx'
 import CourseDetailPage from './pages/CourseDetailPage.jsx'
 import ReviewSubmissionPage from './pages/ReviewSubmissionPage.jsx'
 import CoursesAndReviews from './pages/CoursesReview.jsx'
+import ClubDetailPage from './pages/Clubs/ClubDetailPage.jsx'
+import UploadNotePage from './pages/Notes/UploadNotesPage.jsx'
+import NotesPage from './pages/Notes/NotesPage.jsx'
+import AttendanceTracker from './pages/AttendancePage.jsx'
 const router = createBrowserRouter([
   {
     path: '/',
@@ -53,6 +57,26 @@ const router = createBrowserRouter([
       {
         path: '/submit-review',
         element: <ReviewSubmissionPage />
+      },
+      {
+        path: '/clubs/:clubId', //
+        element: <ClubDetailPage /> //
+      },
+      {
+        path: '/notes',
+        element: <NotesPage />
+      },
+      {
+        path: '/upload-note',
+        element: (
+          <AuthLayout authenticationStatus>
+            <UploadNotePage />
+          </AuthLayout>
+        )
+      },
+      {
+        path: '/attendance',
+        element: <AttendanceTracker />
       },
 
     ]

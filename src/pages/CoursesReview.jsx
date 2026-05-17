@@ -5,12 +5,11 @@ import Service from '../appwrite/config';
 import { useNavigate } from 'react-router-dom';
 import Button from '../LayoutUI/components/Button';
 
-// Utility Function: Calculates the average rating for all courses
+
 const calculateAverageRatings = (allReviews) => {
     const ratingMap = {};
 
     allReviews.forEach(review => {
-        // NOTE: Uses attributes expected from the Appwrite reviews collection
         const courseId = review.courseId;
         const stars = parseFloat(review.stars); 
 
@@ -33,14 +32,14 @@ const calculateAverageRatings = (allReviews) => {
     return averageRatings;
 };
 
-const CoursesAndReviews = () => { // Renamed to consistent component name
+const CoursesAndReviews = () => {
     const [courses, setCourses] = useState([]);
     const [ratings, setRatings] = useState({});
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const navigate = useNavigate();
 
-    // Effect 1: Fetch Courses (Main List)
+
     useEffect(() => {
         Service.getCourses()
             .then((data) => {
@@ -53,34 +52,34 @@ const CoursesAndReviews = () => { // Renamed to consistent component name
             .catch((err) => {
                 setError("Failed to load courses from the server.");
             });
-            // We do NOT set loading to false here, as we wait for reviews in the next effect
+      
     }, []);
 
-    // Effect 2: Fetch Reviews and Calculate Average
+    
     useEffect(() => {
-        // Only run if courses have been fetched
+      
         if (courses.length > 0) {
             Service.getReviews()
                 .then((response) => {
-                    // Assuming response structure is { documents: [...] }
+           
                     const allReviews = response.documents || [];
                     const calculatedRatings = calculateAverageRatings(allReviews);
                     setRatings(calculatedRatings);
                 })
                 .catch((err) => {
                     console.error("Failed to fetch reviews for rating calculation:", err);
-                    // Continue without ratings if fetch fails
+                 
                 })
                 .finally(() => {
-                    // Set loading to false once both fetches are complete
+                
                     setLoading(false); 
                 });
         } 
-        // Handle case where there are no courses to begin with (no need to fetch reviews)
+   
         else if (courses.length === 0 && !loading) {
              setLoading(false);
         }
-    }, [courses]); // Dependency on the courses array
+    }, [courses]);
 
     const handleWriteReview = (id) => {
         navigate(`/submit-review?courseId=${id}`); 
@@ -102,7 +101,7 @@ const CoursesAndReviews = () => { // Renamed to consistent component name
         );
     }
     
-    // MAPPING: Get the calculated average rating
+    
     const transformedCourses = courses.map(course => {
         const courseId = course.$id;
         const courseRatingData = ratings[courseId];
@@ -110,8 +109,7 @@ const CoursesAndReviews = () => { // Renamed to consistent component name
         return {
             id: courseId, 
             title: course.title || "Untitled Course",
-            instructor: course.instructor || "Unknown Instructor",
-            // Pass the dynamically calculated average rating, default to 0
+            provider: course.provider || "Unknown Instructor",
             rating: courseRatingData ? courseRatingData.average : 0, 
             description: course.description || "No description available.",
         };
@@ -120,24 +118,15 @@ const CoursesAndReviews = () => { // Renamed to consistent component name
 
     return (
         <GridPageWrapper minCardWidth={300}>
-            <div className="col-span-full mb-4 flex justify-end">
-                <Button 
-                    variant="default" 
-                    size="sm" 
-                    onClick={() => navigate('/add-course')}
-                >
-                    + Add New Course
-                </Button>
-            </div>
-
+           
             {transformedCourses.length > 0 ? (
                 transformedCourses.map((course) => (
                     <CourseCard
                         key={course.id}
                         id={course.id}
                         title={course.title}
-                        instructor={course.instructor}
-                        rating={course.rating} // Now passing the calculated average rating
+                        provider={course.provider}
+                        rating={course.rating}
                         description={course.description}
                         onReview={() => handleWriteReview(course.id)}
                     />

@@ -7,6 +7,7 @@ const conf = {
     appwriteRatingsCollectionId: String(import.meta.env.VITE_APPWRITE_REVIEW_COLLECTION_ID),
     appwriteCoursesCollectionId: String(import.meta.env.VITE_APPWRITE_COURSES_COLLECTION_ID),
     appwriteReviewsCollectionId : String(import.meta.env.VITE_APPWRITE_REVIEWS_COLLECTION_ID),
+    appwriteNotesCollectionId : String(import.meta.env.VITE_APPWRITE_NOTES_COLLECTION_ID),
 }
 
 export default conf
