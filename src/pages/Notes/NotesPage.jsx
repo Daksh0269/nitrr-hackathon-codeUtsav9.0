@@ -4,7 +4,8 @@ import Service from '../../appwrite/config';
 import GridPageWrapper from '../../LayoutUI/ClubsUI/GridWrapper';
 import Button from '../../LayoutUI/components/Button';
 import { Download, User, AlertCircle } from 'lucide-react'; //
-
+import { useDispatch, useSelector } from 'react-redux';
+import { setNotes } from '../../features/notesSlice';
 /**
  * A simple card to display a Note. (CORRECTED URL Check)
  */
@@ -109,27 +110,35 @@ const NoteCard = ({ title, subject, username, fileId }) => {
 
 // --- NotesPage component remains unchanged ---
 function NotesPage() {
-    const [notes, setNotes] = useState([]); //
-    const [loading, setLoading] = useState(true); //
-    const [error, setError] = useState(null); //
-    const navigate = useNavigate(); //
-
+    const { notes, notesLoaded } = useSelector((state) => state.notes);
+    const [loading, setLoading] = useState(!notesLoaded); 
+    const [error, setError] = useState(null); 
+    const navigate = useNavigate();
+const dispatch = useDispatch();
     useEffect(() => {
+        // 3. Prevent the API call if Redux already has the data
+        if (notesLoaded) {
+            setLoading(false);
+            return;
+        }
+
         setLoading(true);
-        Service.getNotes() //
+        Service.getNotes() 
             .then(fetchedNotes => {
                 const validNotes = fetchedNotes.filter(note => note.fileId && typeof note.fileId === 'string' && note.fileId.trim() !== '');
                 if(fetchedNotes.length !== validNotes.length) {
                     console.warn("NotesPage: Some notes were filtered out due to missing or invalid fileId.");
                 }
-                setNotes(validNotes);
+                
+                // 4. Dispatch the valid notes to Redux instead of local state
+                dispatch(setNotes(validNotes));
             })
             .catch(err => {
                 console.error("NotesPage Error: Failed to load notes:", err);
                 setError("Failed to load notes.");
             })
             .finally(() => setLoading(false));
-    }, []);
+    }, [notesLoaded, dispatch]); // Added dependencies
 
     if (loading) {
         return <div className="min-h-screen bg-black text-white text-center p-10">Loading notes...</div>;
@@ -140,10 +149,10 @@ function NotesPage() {
     }
 
     return (
-        <GridPageWrapper minCardWidth={300}> {/* */}
+        <GridPageWrapper minCardWidth={300}> 
             <div className="col-span-full mb-4 flex justify-between items-center">
                 <h1 className="text-3xl font-bold text-white">Student Notes</h1>
-                <Button variant="default" onClick={() => navigate('/upload-note')}> {/* */}
+                <Button variant="default" onClick={() => navigate('/upload-note')}> 
                     Upload Your Notes
                 </Button>
             </div>
@@ -152,14 +161,14 @@ function NotesPage() {
                 notes.map(note => (
                     <NoteCard
                         key={note.$id}
-                        title={note.title} //
-                        subject={note.subject} //
-                        username={note.username} //
-                        fileId={note.fileId} //
+                        title={note.title} 
+                        subject={note.subject} 
+                        username={note.username} 
+                        fileId={note.fileId} 
                     />
                 ))
             ) : (
-                <div className="text-white text-center col-span-full pt-10"> {/* */}
+                <div className="text-white text-center col-span-full pt-10"> 
                     <p className="text-2xl font-bold mb-2">No Notes Found</p>
                     <p className="text-gray-400">Be the first to upload!</p>
                 </div>
@@ -168,4 +177,4 @@ function NotesPage() {
     );
 }
 
-export default NotesPage;
+export default NotesPage;w

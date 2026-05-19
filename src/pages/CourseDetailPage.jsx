@@ -1,23 +1,28 @@
-// File: src/pages/CourseDetailPage.jsx
-
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import CourseDetail from '../LayoutUI/courseUI/CourseDetail' // Ensure this path is correct
+import { useSelector } from 'react-redux';
+import CourseDetail from '../LayoutUI/courseUI/CourseDetail';
 import Service from '../appwrite/config'; 
 
 function CourseDetailPage() {
     const { courseId } = useParams();
     
-    const [course, setCourse] = useState(null);
-    const [loading, setLoading] = useState(true);
+    // 1. Get the cached courses array from Redux
+    const { courses } = useSelector((state) => state.courses);
+    
+    // 2. See if we already have this specific course in our cache
+    const cachedCourse = courses.find(c => c.$id === courseId);
+
+    // 3. Initialize state using the cached course if it exists
+    const [course, setCourse] = useState(cachedCourse || null);
+    const [loading, setLoading] = useState(!cachedCourse); // Skip loading if we have the cache
     const [error, setError] = useState(null);
     
-
     const [reviews, setReviews] = useState([]);
     const [averageRating, setAverageRating] = useState(0); 
     const [loadingReviews, setLoadingReviews] = useState(false); 
 
-  
+    // Effect for handling the Course Data
     useEffect(() => {
         if (!courseId) {
             setError("Error: Course ID is missing from the URL.");
@@ -25,6 +30,13 @@ function CourseDetailPage() {
             return;
         }
 
+        // If Redux already provided the course, skip the API call entirely
+        if (cachedCourse) {
+            setLoading(false);
+            return;
+        }
+
+        // Fallback: Fetch from server if user navigates directly to the URL (cache is empty)
         setLoading(true);
         Service.getCourse(courseId) 
             .then((data) => {
@@ -41,13 +53,13 @@ function CourseDetailPage() {
             .finally(() => {
                 setLoading(false);
             });
-    }, [courseId]);
+    }, [courseId, cachedCourse]);
 
-    
+    // Effect for handling the Reviews (Always fetch fresh reviews)
     useEffect(() => {
         if (courseId) {
             setLoadingReviews(true);
-            Service.getCourseReviews(courseId) // Fetches all individual reviews
+            Service.getCourseReviews(courseId) 
                 .then((fetchedReviews) => {
                     setReviews(fetchedReviews);
                     
@@ -83,7 +95,6 @@ function CourseDetailPage() {
             </div>
         );
     }
-    
 
     return <CourseDetail 
                 course={course} 
