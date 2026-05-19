@@ -177,4 +177,4 @@ const dispatch = useDispatch();
     );
 }
 
-export default NotesPage;w
+export default NotesPage;
