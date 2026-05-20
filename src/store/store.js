@@ -6,7 +6,7 @@ import notesSlice from '../features/notesSlice'
 const store = configureStore({
   reducer: {
     auth: authSlice,
-    course : courseSlice,
+    courses : courseSlice,
     notes : notesSlice,
   }
 })
