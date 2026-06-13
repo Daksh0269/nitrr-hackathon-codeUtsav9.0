@@ -45,7 +45,7 @@ const Navbar = () => {
                     to="/" 
                     className="text-2xl font-bold tracking-wider text-white hover:text-blue-500 transition-colors duration-200"
                 >
-                    MyApp
+                    SaveMySem
                 </Link>
 
               
